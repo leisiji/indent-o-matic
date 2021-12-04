@@ -48,6 +48,14 @@ local function config(config_key, default_value)
     return value
 end
 
+local function syntax_skip(line, col)
+    local syntax = vim.fn.synIDattr(vim.fn.synIDtrans(vim.fn.synID(line, col, 1)), 'name')
+    if syntax:match('String$') or syntax:match('Comment$') or syntax:match('Doc$') then
+        return true
+    end
+    return false
+end
+
 -- Configure the plugin
 function indent_o_matic.setup(options)
     if type(options) == 'table' then
@@ -105,6 +113,10 @@ function indent_o_matic.detect()
                 end
 
                 j = j + 1
+            end
+
+            if syntax_skip(i, j) then
+                goto continue
             end
 
             -- If it's a standard number of spaces it's probably the file's indentation
