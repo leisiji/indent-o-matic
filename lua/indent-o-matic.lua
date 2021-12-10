@@ -56,6 +56,24 @@ local function syntax_skip(line, col)
     return false
 end
 
+local function skip_comment_by_ts(lang_tree)
+    if lang_tree == nil then
+        return 0
+    end
+
+    for _, tree in ipairs(lang_tree:trees()) do
+      local root = tree:root()
+      for node, _ in root:iter_children() do
+        if node:type() ~= 'comment' then
+          local line, _, _ = node:start()
+          return line
+        end
+      end
+    end
+
+    return 0
+end
+
 -- Configure the plugin
 function indent_o_matic.setup(options)
     if type(options) == 'table' then
@@ -77,9 +95,12 @@ function indent_o_matic.detect()
     local max_lines = config('max_lines', 2048)
     local standard_widths = config('standard_widths', { 2, 4, 8 })
 
+    -- treesitter
+    local lang_tree = require('nvim-treesitter.parsers').get_parser(0)
+    local i = skip_comment_by_ts(lang_tree)
+
     -- Loop over every line, breaking once it finds something that looks like a
     -- standard indentation or if it reaches end of file
-    local i = 0
     while i ~= max_lines do
         local first_char
 
@@ -115,7 +136,7 @@ function indent_o_matic.detect()
                 j = j + 1
             end
 
-            if syntax_skip(i, j) then
+            if lang_tree == nil and syntax_skip(i, j) then
                 goto continue
             end
 
