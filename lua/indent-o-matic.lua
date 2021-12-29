@@ -93,7 +93,7 @@ function indent_o_matic.detect()
 
     -- Options
     local max_lines = config('max_lines', 2048)
-    local standard_widths = config('standard_widths', { 2, 4, 8 })
+    local standard_widths = config('standard_widths', { 2, 4 })
 
     -- treesitter
     local lang_tree = require('nvim-treesitter.parsers').get_parser(0)
