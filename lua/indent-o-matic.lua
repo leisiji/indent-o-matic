@@ -64,7 +64,8 @@ local function skip_comment_by_ts(lang_tree)
     for _, tree in ipairs(lang_tree:trees()) do
       local root = tree:root()
       for node, _ in root:iter_children() do
-        if node:type() ~= 'comment' then
+        local type = node:type()
+        if type ~= 'comment' then
           local line, _, _ = node:start()
           return line
         end
