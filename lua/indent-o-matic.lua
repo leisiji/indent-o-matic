@@ -56,21 +56,21 @@ local function syntax_skip(line, col)
     return false
 end
 
-local function skip_comment_by_ts(lang_tree)
-    if lang_tree == nil then
-        return 0
-    end
-
-    for _, tree in ipairs(lang_tree:trees()) do
-        local root = tree:root()
-        for node, _ in root:iter_children() do
-            local type = node:type()
-            if string.find(type, 'comment') == nil then
-                for _, v in node:iter_children() do
+local function get_function_line(node)
+    for n, _ in node:iter_children() do
+        local type = n:type()
+        if string.find(type, 'comment') == nil then
+            if string.find(type, 'function') ~= nil then
+                for _, v in n:iter_children() do
                     if v == 'body' then
-                        local line, _, _ = node:start()
-                        return line
+                        local line, _, _ = n:start()
+                        return line + 1
                     end
+                end
+            else
+                local i = get_function_line(n)
+                if i ~= 0 then
+                    return i
                 end
             end
         end
@@ -102,7 +102,16 @@ function indent_o_matic.detect()
 
     -- treesitter
     local lang_tree = require('nvim-treesitter.parsers').get_parser(0)
-    local i = skip_comment_by_ts(lang_tree)
+    local i = 0
+    if lang_tree ~= nil then
+        for _, tree in pairs(lang_tree:trees()) do
+            local ret = get_function_line(tree:root())
+            if ret ~= 0 then
+                i = ret
+                break
+            end
+        end
+    end
 
     -- Loop over every line, breaking once it finds something that looks like a
     -- standard indentation or if it reaches end of file
