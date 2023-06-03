@@ -57,6 +57,7 @@ local function syntax_skip(line, col)
 end
 
 local function get_function_line(node)
+    local prev = 0
     for n, _ in node:iter_children() do
         local type = n:type()
         if string.find(type, 'comment') == nil then
@@ -64,13 +65,12 @@ local function get_function_line(node)
                 for child, v in n:iter_children() do
                     if v == 'body' then
                         local start, _, _ = child:start()
-                        local end_, _, _ = child:end_()
                         local line
-                        if start ~= end_ then
-                            -- the fisrt line of function body is often bracket, jump over it
+                        -- Some language's function have bracket {} around,
+                        -- bracket may be located at the same line of function declaration
+                        if start ~= prev then
                             line = start + 1
                         else
-                            -- pay attention to language like lua have no bracket
                             line = start
                         end
                         return line
@@ -83,6 +83,7 @@ local function get_function_line(node)
                 end
             end
         end
+        prev = n:end_()
     end
 
     return 0
