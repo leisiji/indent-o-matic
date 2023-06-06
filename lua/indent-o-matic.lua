@@ -58,6 +58,7 @@ end
 
 local function get_function_line(node)
     local prev = 0
+    local ret = 0
     for n, _ in node:iter_children() do
         local type = n:type()
         if string.find(type, 'comment') == nil then
@@ -82,11 +83,13 @@ local function get_function_line(node)
                     return i
                 end
             end
+        else
+            ret = n:end_() + 1
         end
         prev = n:end_()
     end
 
-    return 0
+    return ret
 end
 
 -- Configure the plugin
